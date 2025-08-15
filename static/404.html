@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>CryptoBib Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+        // GitHub Pages SPA redirect for client-side routing
+        (function(l) {
+            if (l.search[1] === '/' ) {
+                var decoded = l.search.slice(1).split('&').map(function(s) { 
+                    return s.replace(/~and~/g, '&')
+                }).join('?');
+                window.history.replaceState(null, null,
+                    l.pathname.slice(0, -1) + decoded + l.hash
+                );
+            }
+        }(window.location))
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading CryptoBib Search...</p>
+    </div>
+    
+    <script>
+        // Redirect to the main app after a short delay
+        setTimeout(function() {
+            window.location.href = '/cryptobib-search/';
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -4,16 +4,14 @@ import type { BibEntry, SearchResult } from '../types/bibliography.js';
 
 export const bibliography = writable<BibEntry[]>([]);
 export const searchResults = writable<SearchResult[]>([]);
-export const isLoading = writable(true);
-export const loadingProgress = writable(0);
+export const isLoading = writable(false);
+export const isSearching = writable(false);
 export const searchQuery = writable('');
-
-const CACHE_KEY = 'cryptobib_bibliography';
-const CACHE_VERSION_KEY = 'cryptobib_cache_version';
-const CURRENT_CACHE_VERSION = '1.0'; // Increment when you want to invalidate cache
-
+export const hasSearched = writable(false);
 
 let fuse: Fuse<BibEntry> | null = null;
+let bibliographyData: BibEntry[] = [];
+let isDataLoaded = false;
 
 const fuseOptions = {
 	keys: [
@@ -30,159 +28,66 @@ const fuseOptions = {
 	minMatchCharLength: 2
 };
 
-// Progressive processing function to avoid UI freezing
-function processInChunks<T>(
-	items: T[],
-	chunkSize: number,
-	processor: (chunk: T[]) => void,
-	onProgress?: (progress: number) => void,
-	onComplete?: () => void
-) {
-	let index = 0;
+// Lazy load bibliography data only when needed
+async function ensureDataLoaded(): Promise<void> {
+	if (isDataLoaded) return;
 	
-	function processChunk() {
-		const chunk = items.slice(index, index + chunkSize);
-		if (chunk.length === 0) {
-			onComplete?.();
-			return;
-		}
-		
-		processor(chunk);
-		index += chunkSize;
-		
-		const progress = Math.min(100, (index / items.length) * 100);
-		onProgress?.(progress);
-		
-		// Use requestAnimationFrame to avoid blocking the UI
-		requestAnimationFrame(processChunk);
-	}
+	isLoading.set(true);
 	
-	requestAnimationFrame(processChunk);
-}
-
-// Add these helper functions
-function saveBibliographyToCache(data: BibEntry[]) {
 	try {
-		localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-		localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
-		console.log('Bibliography cached successfully');
-	} catch (error) {
-		console.warn('Failed to cache bibliography:', error);
-	}
-}
-
-function loadBibliographyFromCache(): BibEntry[] | null {
-	try {
-		const cachedVersion = localStorage.getItem(CACHE_VERSION_KEY);
-		if (cachedVersion !== CURRENT_CACHE_VERSION) {
-			// Cache version mismatch, clear old cache
-			localStorage.removeItem(CACHE_KEY);
-			localStorage.removeItem(CACHE_VERSION_KEY);
-			return null;
-		}
-		
-		const cached = localStorage.getItem(CACHE_KEY);
-		if (cached) {
-			return JSON.parse(cached);
-		}
-	} catch (error) {
-		console.warn('Failed to load cached bibliography:', error);
-		// Clear corrupted cache
-		localStorage.removeItem(CACHE_KEY);
-		localStorage.removeItem(CACHE_VERSION_KEY);
-	}
-	return null;
-}
-
-// Replace the entire loadBibliography function with this:
-export async function loadBibliography() {
-	try {
-		isLoading.set(true);
-		loadingProgress.set(0);
-		
-		// Try to load from cache first
-		const cachedData = loadBibliographyFromCache();
-		if (cachedData && cachedData.length > 0) {
-			console.log(`Loaded ${cachedData.length} entries from cache`);
-			
-			// Process cached entries in chunks
-			const processedEntries: BibEntry[] = [];
-			
-			processInChunks(
-				cachedData,
-				500,
-				(chunk) => {
-					processedEntries.push(...chunk);
-				},
-				(progress) => {
-					loadingProgress.set(progress);
-				},
-				() => {
-					bibliography.set(processedEntries);
-					fuse = new Fuse(processedEntries, fuseOptions);
-					isLoading.set(false);
-					loadingProgress.set(100);
-					console.log(`Loaded ${processedEntries.length} bibliography entries from cache`);
-				}
-			);
-			return;
-		}
-		
-		// If no cache, fetch from network
-		console.log('No cache found, fetching from network...');
 		const response = await fetch('/bibliography.json');
 		if (!response.ok) throw new Error('Failed to load bibliography');
 		
-		const data: BibEntry[] = await response.json();
-		console.log(`Loading ${data.length} bibliography entries from network...`);
+		bibliographyData = await response.json();
+		fuse = new Fuse(bibliographyData, fuseOptions);
+		bibliography.set(bibliographyData);
+		isDataLoaded = true;
 		
-		// Cache the fetched data
-		saveBibliographyToCache(data);
-		
-		// Process entries in chunks to avoid freezing
-		const processedEntries: BibEntry[] = [];
-		
-		processInChunks(
-			data,
-			500,
-			(chunk) => {
-				processedEntries.push(...chunk);
-			},
-			(progress) => {
-				loadingProgress.set(progress);
-			},
-			() => {
-				bibliography.set(processedEntries);
-				fuse = new Fuse(processedEntries, fuseOptions);
-				isLoading.set(false);
-				loadingProgress.set(100);
-				console.log(`Loaded ${processedEntries.length} bibliography entries from network`);
-			}
-		);
-		
+		console.log(`Loaded ${bibliographyData.length} bibliography entries`);
 	} catch (error) {
 		console.error('Error loading bibliography:', error);
+		throw error;
+	} finally {
 		isLoading.set(false);
-		loadingProgress.set(0);
 	}
 }
 
-
-export function search(query: string) {
-	if (!fuse || !query.trim()) {
+export async function search(query: string) {
+	if (!query.trim()) {
 		searchResults.set([]);
+		hasSearched.set(false);
 		return;
 	}
 	
-	const results = fuse.search(query.trim()).slice(0, 50); // Limit to 50 results
+	isSearching.set(true);
+	hasSearched.set(true);
 	
-	const searchResultsData: SearchResult[] = results.map(result => ({
-		entry: result.item,
-		score: result.score || 0,
-		matches: result.matches?.map(match => match.key || '') || []
-	}));
-	
-	searchResults.set(searchResultsData);
+	try {
+		// Ensure data is loaded before searching
+		await ensureDataLoaded();
+		
+		if (!fuse) {
+			searchResults.set([]);
+			return;
+		}
+		
+		const results = fuse.search(query.trim()).slice(0, 50);
+		
+		const searchResultsData: SearchResult[] = results.map(result => ({
+			entry: result.item,
+			score: result.score || 0,
+			matches: result.matches?.flatMap(match => 
+				match.indices?.map(() => match.value || '') || []
+			) || []
+		}));
+		
+		searchResults.set(searchResultsData);
+	} catch (error) {
+		console.error('Search error:', error);
+		searchResults.set([]);
+	} finally {
+		isSearching.set(false);
+	}
 }
 
 export function copyToClipboard(text: string): Promise<void> {
@@ -211,18 +116,14 @@ export function copyToClipboard(text: string): Promise<void> {
 }
 
 export function formatForHayagriva(entry: BibEntry): string {
-	// If we have the raw entry, use it directly
 	if (entry.rawEntry) {
 		return entry.rawEntry;
 	}
 	
-	// Otherwise, reconstruct a basic BibTeX entry
 	const type = entry.type || 'misc';
 	let bibTeX = `@${type}{${entry.id}`;
 	
 	const fields: Array<[string, string]> = [];
-	
-	// Add fields in a reasonable order
 	const fieldOrder = ['author', 'title', 'journal', 'booktitle', 'year', 'volume', 'number', 'pages', 'publisher', 'doi', 'url'];
 	
 	for (const field of fieldOrder) {
@@ -231,7 +132,6 @@ export function formatForHayagriva(entry: BibEntry): string {
 		}
 	}
 	
-	// Add any other fields not in the standard order
 	for (const [key, value] of Object.entries(entry)) {
 		if (!fieldOrder.includes(key) && key !== 'id' && key !== 'type' && key !== 'rawEntry' && value && typeof value === 'string' && value.trim()) {
 			fields.push([key, value]);
@@ -246,4 +146,3 @@ export function formatForHayagriva(entry: BibEntry): string {
 	bibTeX += '\n}';
 	return bibTeX;
 }
-
