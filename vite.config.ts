@@ -10,18 +10,22 @@ export default defineConfig({
 		target: 'esnext',
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					// Separate vendor chunks for better caching
-					'search-vendor': ['fuse.js'],
-					'bibtex-vendor': ['bibtex-parse-js']
+				manualChunks: (id) => {
+					// Only chunk modules that are actually bundled, not external
+					if (id.includes('node_modules')) {
+						if (id.includes('fuse.js')) {
+							return 'search-vendor';
+						}
+						if (id.includes('bibtex-parse-js')) {
+							return 'bibtex-vendor';
+						}
+						return 'vendor';
+					}
 				}
 			}
 		},
-		// Enable source maps for better debugging but keep them separate
 		sourcemap: false,
-		// Minimize CSS
 		cssMinify: true,
-		// Enable minification
 		minify: 'esbuild'
 	},
 	server: {

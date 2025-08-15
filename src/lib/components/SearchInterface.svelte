@@ -95,12 +95,12 @@
 
 <div class="search-wrapper" class:search-active={isSearchActive}>
 	<div class="search-container" bind:this={searchContainer}>
-		<div class="search-header" class:compact={isSearchActive}>
+		<!-- <div class="search-header" class:compact={isSearchActive}>
 			<h1>CryptoBib</h1>
 			{#if !isSearchActive}
 				<p class="subtitle">Search cryptography bibliography entries</p>
 			{/if}
-		</div>
+		</div> -->
 		
 		<div class="search-box">
 			<div class="search-input-wrapper">
@@ -117,14 +117,14 @@
 					</div>
 				{/if}
 			</div>
-			{#if !isSearchActive}
+			<!-- {#if !isSearchActive}
 				<div class="search-examples">
 					<span class="example-label">Try:</span>
 					<button class="example" on:click={() => { searchInput = 'CKKS18'; handleInput(); handleFocus(); }}>CKKS18</button>
 					<button class="example" on:click={() => { searchInput = 'Regev05'; handleInput(); handleFocus(); }}>Regev05</button>
 					<button class="example" on:click={() => { searchInput = 'lattice-based'; handleInput(); handleFocus(); }}>lattice-based</button>
 				</div>
-			{/if}
+			{/if} -->
 		</div>
 	</div>
 	
@@ -209,7 +209,8 @@
 	.search-wrapper {
 		min-height: 100vh;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		/* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+		background: #f8fafc;
 		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 	
@@ -245,7 +246,7 @@
 		margin-bottom: 1.5rem;
 	}
 	
-	.search-header h1 {
+	/* .search-header h1 {
 		font-size: 4rem;
 		font-weight: 800;
 		margin: 0 0 1rem 0;
@@ -263,7 +264,7 @@
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
 		margin-bottom: 0;
-	}
+	} */
 	
 	.subtitle {
 		color: rgba(255, 255, 255, 0.9);
@@ -565,13 +566,13 @@
 	}
 	
 	@media (max-width: 768px) {
-		.search-header h1 {
+		/* .search-header h1 {
 			font-size: 3rem;
 		}
 		
 		.search-wrapper.search-active .search-header h1 {
 			font-size: 2rem;
-		}
+		} */
 		
 		.result-item {
 			padding: 1rem;

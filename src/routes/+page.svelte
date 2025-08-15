@@ -31,14 +31,14 @@
 		"@type": "WebApplication",
 		"name": "CryptoBib Search",
 		"description": "Fast and efficient search for cryptography bibliography entries",
-		"url": "https://yourusername.github.io/cryptobib-search",
+		"url": "https://antonisraelsson.github.io/cryptobib-search",
 		"applicationCategory": "EducationalApplication",
 		"operatingSystem": "Any",
 		"browserRequirements": "Requires JavaScript. Requires HTML5.",
 		"softwareVersion": "1.0",
 		"author": {
 			"@type": "Person",
-			"name": "Your Name"
+			"name": "Anton Israelsson"
 		}
 	}
 	</script>
