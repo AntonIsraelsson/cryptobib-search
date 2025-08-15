@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { asset } from '$app/paths';
 import Fuse from 'fuse.js';
 import type { BibEntry, SearchResult } from '../types/bibliography.js';
 
@@ -35,8 +36,10 @@ async function ensureDataLoaded(): Promise<void> {
 	isLoading.set(true);
 	
 	try {
-		const response = await fetch('/bibliography.json');
-		if (!response.ok) throw new Error('Failed to load bibliography');
+		// Use the correct asset path for GitHub Pages deployment
+		const bibliographyUrl = asset('/bibliography.json');
+		const response = await fetch(bibliographyUrl);
+		if (!response.ok) throw new Error(`Failed to load bibliography from ${bibliographyUrl}`);
 		
 		bibliographyData = await response.json();
 		fuse = new Fuse(bibliographyData, fuseOptions);
@@ -94,24 +97,9 @@ export function copyToClipboard(text: string): Promise<void> {
 	if (navigator.clipboard && window.isSecureContext) {
 		return navigator.clipboard.writeText(text);
 	} else {
-		// Fallback for older browsers
-		const textArea = document.createElement('textarea');
-		textArea.value = text;
-		textArea.style.position = 'fixed';
-		textArea.style.left = '-999999px';
-		textArea.style.top = '-999999px';
-		document.body.appendChild(textArea);
-		textArea.focus();
-		textArea.select();
-		
-		return new Promise((resolve, reject) => {
-			if (document.execCommand('copy')) {
-				resolve();
-			} else {
-				reject(new Error('Copy failed'));
-			}
-			document.body.removeChild(textArea);
-		});
+		// For non-secure contexts, we can't use clipboard API
+		// User will need to copy manually
+		return Promise.reject(new Error('Clipboard API not available'));
 	}
 }
 

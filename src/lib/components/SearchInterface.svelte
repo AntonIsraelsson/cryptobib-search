@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { searchResults, isLoading, isSearching, searchQuery, hasSearched, search, copyToClipboard, formatForHayagriva } from '../stores/bibliography.js';
+	import {
+		searchResults,
+		isLoading,
+		isSearching,
+		searchQuery,
+		hasSearched,
+		search,
+		copyToClipboard,
+		formatForHayagriva
+	} from '../stores/bibliography.js';
 	import type { SearchResult } from '../types/bibliography.js';
-	
+
 	let searchInput = '';
 	let debounceTimer: ReturnType<typeof setTimeout>;
 	let copyStatus: { [key: string]: 'idle' | 'copying' | 'success' | 'error' } = {};
 	let searchContainer: HTMLElement;
 	let isSearchActive = false;
-	
+
 	function handleInput() {
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
@@ -16,15 +25,14 @@
 			search(searchInput);
 		}, 300);
 	}
-	
+
 	function handleFocus() {
 		if (!isSearchActive) {
 			isSearchActive = true;
-			// Smooth transition to top
 			searchContainer.classList.add('search-active');
 		}
 	}
-	
+
 	function formatAuthors(authors?: string): string {
 		if (!authors) return '';
 		const authorList = authors.split(' and ');
@@ -33,16 +41,16 @@
 		}
 		return authorList.slice(0, 3).join(', ') + ', et al.';
 	}
-	
+
 	function getDisplayTitle(entry: any): string {
 		return entry.title || entry.id || 'Untitled';
 	}
-	
+
 	function highlightMatches(text: string, matches: string[]): string {
 		if (!matches.length) return text;
-		
+
 		let highlighted = text;
-		matches.forEach(match => {
+		matches.forEach((match) => {
 			if (match && match.trim()) {
 				const regex = new RegExp(`(${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
 				highlighted = highlighted.replace(regex, '<mark>$1</mark>');
@@ -50,16 +58,16 @@
 		});
 		return highlighted;
 	}
-	
+
 	async function handleCopy(entryId: string, entry: any) {
 		copyStatus[entryId] = 'copying';
 		copyStatus = { ...copyStatus };
-		
+
 		try {
 			const hayagrivaText = formatForHayagriva(entry);
 			await copyToClipboard(hayagrivaText);
 			copyStatus[entryId] = 'success';
-			
+
 			setTimeout(() => {
 				copyStatus[entryId] = 'idle';
 				copyStatus = { ...copyStatus };
@@ -67,26 +75,31 @@
 		} catch (error) {
 			console.error('Copy failed:', error);
 			copyStatus[entryId] = 'error';
-			
+
+			// For clipboard failures, show a longer error message
 			setTimeout(() => {
 				copyStatus[entryId] = 'idle';
 				copyStatus = { ...copyStatus };
-			}, 2000);
+			}, 3000);
 		}
-		
+
 		copyStatus = { ...copyStatus };
 	}
-	
+
 	function getCopyButtonText(entryId: string): string {
 		const status = copyStatus[entryId] || 'idle';
 		switch (status) {
-			case 'copying': return 'Copying...';
-			case 'success': return 'Copied!';
-			case 'error': return 'Failed';
-			default: return 'Copy';
+			case 'copying':
+				return 'Copying...';
+			case 'success':
+				return 'Copied!';
+			case 'error':
+				return 'Copy Failed';
+			default:
+				return 'Copy';
 		}
 	}
-	
+
 	function getCopyButtonClass(entryId: string): string {
 		const status = copyStatus[entryId] || 'idle';
 		return `copy-button ${status}`;
@@ -95,13 +108,6 @@
 
 <div class="search-wrapper" class:search-active={isSearchActive}>
 	<div class="search-container" bind:this={searchContainer}>
-		<!-- <div class="search-header" class:compact={isSearchActive}>
-			<h1>CryptoBib</h1>
-			{#if !isSearchActive}
-				<p class="subtitle">Search cryptography bibliography entries</p>
-			{/if}
-		</div> -->
-		
 		<div class="search-box">
 			<div class="search-input-wrapper">
 				<input
@@ -117,17 +123,38 @@
 					</div>
 				{/if}
 			</div>
-			<!-- {#if !isSearchActive}
+			{#if !isSearchActive}
 				<div class="search-examples">
 					<span class="example-label">Try:</span>
-					<button class="example" on:click={() => { searchInput = 'CKKS18'; handleInput(); handleFocus(); }}>CKKS18</button>
-					<button class="example" on:click={() => { searchInput = 'Regev05'; handleInput(); handleFocus(); }}>Regev05</button>
-					<button class="example" on:click={() => { searchInput = 'lattice-based'; handleInput(); handleFocus(); }}>lattice-based</button>
+					<button
+						class="example"
+						on:click={() => {
+							searchInput = 'CKKS18';
+							handleInput();
+							handleFocus();
+						}}>CKKS17</button
+					>
+					<button
+						class="example"
+						on:click={() => {
+							searchInput = 'Regev05';
+							handleInput();
+							handleFocus();
+						}}>Regev05</button
+					>
+					<button
+						class="example"
+						on:click={() => {
+							searchInput = 'lattice-based';
+							handleInput();
+							handleFocus();
+						}}>lattice-based</button
+					>
 				</div>
-			{/if} -->
+			{/if}
 		</div>
 	</div>
-	
+
 	{#if isSearchActive}
 		<div class="results-container">
 			{#if $searchResults.length > 0}
@@ -137,44 +164,46 @@
 						{$searchResults.length === 1 ? 'result' : 'results'}
 						{#if $searchQuery}for <span class="search-term">"{$searchQuery}"</span>{/if}
 					</div>
-					
+
 					{#each $searchResults as result}
 						<article class="result-item">
 							<div class="result-main">
 								<div class="result-id">
 									{@html highlightMatches(result.entry.id, result.matches)}
 								</div>
-								
+
 								<h3 class="result-title">
 									{@html highlightMatches(getDisplayTitle(result.entry), result.matches)}
 								</h3>
-								
+
 								{#if result.entry.author}
 									<div class="result-authors">
 										{@html highlightMatches(formatAuthors(result.entry.author), result.matches)}
 									</div>
 								{/if}
-								
+
 								<div class="result-meta">
 									{#if result.entry.year}
 										<span class="meta-item year">{result.entry.year}</span>
 									{/if}
-									
+
 									{#if result.entry.journal}
 										<span class="meta-item venue">{result.entry.journal}</span>
 									{:else if result.entry.booktitle}
 										<span class="meta-item venue">{result.entry.booktitle}</span>
 									{/if}
-									
+
 									{#if result.entry.type}
 										<span class="meta-item type">{result.entry.type}</span>
 									{/if}
 								</div>
-								
+
 								{#if result.entry.doi || result.entry.url}
 									<div class="result-links">
 										{#if result.entry.doi}
-											<a href="https://doi.org/{result.entry.doi}" target="_blank" rel="noopener">DOI</a>
+											<a href="https://doi.org/{result.entry.doi}" target="_blank" rel="noopener"
+												>DOI</a
+											>
 										{/if}
 										{#if result.entry.url}
 											<a href={result.entry.url} target="_blank" rel="noopener">URL</a>
@@ -182,12 +211,14 @@
 									</div>
 								{/if}
 							</div>
-							
+
 							<button
 								class={getCopyButtonClass(result.entry.id)}
 								on:click={() => handleCopy(result.entry.id, result.entry)}
 								disabled={copyStatus[result.entry.id] === 'copying'}
-								title="Copy BibTeX entry"
+								title={copyStatus[result.entry.id] === 'error'
+									? 'Copy failed - try selecting and copying the text manually'
+									: 'Copy BibTeX entry'}
 							>
 								{getCopyButtonText(result.entry.id)}
 							</button>
@@ -213,11 +244,11 @@
 		background: #f8fafc;
 		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
-	
+
 	.search-wrapper.search-active {
 		background: #f8fafc;
 	}
-	
+
 	.search-container {
 		display: flex;
 		flex-direction: column;
@@ -229,61 +260,41 @@
 		max-width: 800px;
 		margin: 0 auto;
 	}
-	
+
 	.search-wrapper.search-active .search-container {
 		min-height: auto;
 		justify-content: flex-start;
 		padding: 2rem 1rem 1rem 1rem;
 	}
-	
+
 	.search-header {
 		text-align: center;
 		margin-bottom: 3rem;
 		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
-	
+
 	.search-header.compact {
 		margin-bottom: 1.5rem;
 	}
-	
-	/* .search-header h1 {
-		font-size: 4rem;
-		font-weight: 800;
-		margin: 0 0 1rem 0;
-		background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	
-	.search-wrapper.search-active .search-header h1 {
-		font-size: 2.5rem;
-		background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		margin-bottom: 0;
-	} */
-	
+
 	.subtitle {
 		color: rgba(255, 255, 255, 0.9);
 		font-size: 1.2rem;
 		margin: 0;
 		font-weight: 400;
 	}
-	
+
 	.search-box {
 		width: 100%;
 		max-width: 600px;
 		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
-	
+
 	.search-input-wrapper {
 		position: relative;
 		margin-bottom: 1.5rem;
 	}
-	
+
 	.search-input-wrapper input {
 		width: 100%;
 		padding: 1.2rem 1.5rem;
@@ -297,31 +308,31 @@
 		transition: all 0.3s ease;
 		box-sizing: border-box;
 	}
-	
+
 	.search-wrapper.search-active .search-input-wrapper input {
 		background: white;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		border: 2px solid transparent;
 	}
-	
+
 	.search-input-wrapper input:focus {
 		transform: translateY(-2px);
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 	}
-	
+
 	.search-wrapper.search-active .search-input-wrapper input:focus {
 		border-color: #3b82f6;
 		box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 		transform: none;
 	}
-	
+
 	.search-indicator {
 		position: absolute;
 		right: 1rem;
 		top: 50%;
 		transform: translateY(-50%);
 	}
-	
+
 	.spinner {
 		width: 20px;
 		height: 20px;
@@ -330,12 +341,16 @@
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 	}
-	
+
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
-	
+
 	.search-examples {
 		display: flex;
 		align-items: center;
@@ -344,13 +359,13 @@
 		flex-wrap: wrap;
 		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 	}
-	
+
 	.example-label {
 		color: rgba(255, 255, 255, 0.8);
 		font-size: 0.9rem;
 		font-weight: 500;
 	}
-	
+
 	.example {
 		background: rgba(255, 255, 255, 0.2);
 		color: white;
@@ -362,12 +377,12 @@
 		transition: all 0.2s ease;
 		backdrop-filter: blur(10px);
 	}
-	
+
 	.example:hover {
 		background: rgba(255, 255, 255, 0.3);
 		transform: translateY(-2px);
 	}
-	
+
 	.results-container {
 		width: 100%;
 		max-width: 800px;
@@ -375,7 +390,7 @@
 		padding: 0 1rem 2rem 1rem;
 		animation: fadeInUp 0.5s ease-out;
 	}
-	
+
 	@keyframes fadeInUp {
 		from {
 			opacity: 0;
@@ -386,23 +401,23 @@
 			transform: translateY(0);
 		}
 	}
-	
+
 	.results-header {
 		margin-bottom: 1.5rem;
 		font-weight: 600;
 		color: #374151;
 		font-size: 0.95rem;
 	}
-	
+
 	.results-count {
 		color: #3b82f6;
 		font-weight: 700;
 	}
-	
+
 	.search-term {
 		color: #6366f1;
 	}
-	
+
 	.result-item {
 		display: flex;
 		padding: 1.5rem;
@@ -414,17 +429,17 @@
 		gap: 1rem;
 		align-items: flex-start;
 	}
-	
+
 	.result-item:hover {
 		border-color: #d1d5db;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 		transform: translateY(-1px);
 	}
-	
+
 	.result-main {
 		flex: 1;
 	}
-	
+
 	.result-id {
 		font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
 		font-weight: 700;
@@ -432,7 +447,7 @@
 		font-size: 1rem;
 		margin-bottom: 0.5rem;
 	}
-	
+
 	.result-title {
 		font-weight: 600;
 		font-size: 1.1rem;
@@ -440,49 +455,49 @@
 		margin: 0 0 0.5rem 0;
 		color: #111827;
 	}
-	
+
 	.result-authors {
 		color: #6b7280;
 		margin-bottom: 0.75rem;
 		font-size: 0.95rem;
 	}
-	
+
 	.result-meta {
 		display: flex;
 		gap: 1rem;
 		margin-bottom: 0.75rem;
 		flex-wrap: wrap;
 	}
-	
+
 	.meta-item {
 		font-size: 0.85rem;
 		padding: 0.25rem 0.5rem;
 		border-radius: 6px;
 		font-weight: 500;
 	}
-	
+
 	.year {
 		background: #dcfce7;
 		color: #166534;
 	}
-	
+
 	.venue {
 		background: #ede9fe;
 		color: #7c2d12;
 	}
-	
+
 	.type {
 		background: #fee2e2;
 		color: #dc2626;
 		text-transform: uppercase;
 		font-size: 0.75rem;
 	}
-	
+
 	.result-links {
 		display: flex;
 		gap: 1rem;
 	}
-	
+
 	.result-links a {
 		color: #3b82f6;
 		text-decoration: none;
@@ -492,12 +507,12 @@
 		border-radius: 4px;
 		transition: all 0.2s ease;
 	}
-	
+
 	.result-links a:hover {
 		background: #eff6ff;
 		text-decoration: underline;
 	}
-	
+
 	.copy-button {
 		padding: 0.5rem 1rem;
 		font-size: 0.875rem;
@@ -511,52 +526,52 @@
 		height: fit-content;
 		font-weight: 500;
 	}
-	
+
 	.copy-button:hover {
 		border-color: #3b82f6;
 		color: #3b82f6;
 		background: #eff6ff;
 	}
-	
+
 	.copy-button:disabled,
 	.copy-button.copying {
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
-	
+
 	.copy-button.success {
 		border-color: #10b981;
 		color: #10b981;
 		background: #ecfdf5;
 	}
-	
+
 	.copy-button.error {
 		border-color: #ef4444;
 		color: #ef4444;
 		background: #fef2f2;
 	}
-	
+
 	.no-results {
 		text-align: center;
 		padding: 4rem 1rem;
 		color: #6b7280;
 	}
-	
+
 	.no-results-icon {
 		font-size: 3rem;
 		margin-bottom: 1rem;
 	}
-	
+
 	.no-results p {
 		margin: 0.5rem 0;
 		font-size: 1.1rem;
 	}
-	
+
 	.no-results-hint {
 		font-size: 0.9rem !important;
 		opacity: 0.8;
 	}
-	
+
 	:global(mark) {
 		background-color: #fef3c7;
 		color: #92400e;
@@ -564,31 +579,23 @@
 		border-radius: 3px;
 		font-weight: 600;
 	}
-	
+
 	@media (max-width: 768px) {
-		/* .search-header h1 {
-			font-size: 3rem;
-		}
-		
-		.search-wrapper.search-active .search-header h1 {
-			font-size: 2rem;
-		} */
-		
 		.result-item {
 			padding: 1rem;
 			flex-direction: column;
 			gap: 0.75rem;
 		}
-		
+
 		.copy-button {
 			align-self: flex-start;
 		}
-		
+
 		.result-meta {
 			flex-direction: column;
 			gap: 0.5rem;
 		}
-		
+
 		.search-examples {
 			flex-direction: column;
 			gap: 0.75rem;

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from '$app/paths';
 	import SearchInterface from '$lib/components/SearchInterface.svelte';
 </script>
 
@@ -18,8 +19,8 @@
 	<meta property="twitter:title" content="CryptoBib Search - Fast Cryptography Bibliography Search" />
 	<meta property="twitter:description" content="Fast and efficient search for cryptography bibliography entries. Search through thousands of crypto research papers instantly." />
 	
-	<!-- Preload critical resources -->
-	<link rel="preload" href="/bibliography.json" as="fetch" crossorigin="anonymous" />
+	<!-- Preload critical resources with correct asset path -->
+	<link rel="preload" href="{asset('/bibliography.json')}" as="fetch" crossorigin="anonymous" />
 	
 	<!-- Performance optimizations -->
 	<link rel="dns-prefetch" href="//cryptobib.di.ens.fr" />
