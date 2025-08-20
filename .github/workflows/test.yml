@@ -1,0 +1,63 @@
+name: Test Build
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ develop, feature/* ]
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build with test data
+        run: |
+          npm run build:index
+          npm run build
+
+      - name: Test search functionality (basic smoke test)
+        run: |
+          # Check that search index files were generated
+          test -f static/search/index.core.meta.json
+          test -f static/search/index.core.dict.bin
+          test -f static/search/index.core.postings.bin
+          test -f static/search/doc.blob.bin
+          test -f static/search/idmap.json
+          echo "✅ Search index files generated successfully"
+          
+          # Check that build output contains search files
+          test -f build/search/index.core.meta.json
+          test -f build/search/index.core.dict.bin
+          test -f build/search/index.core.postings.bin
+          test -f build/search/doc.blob.bin
+          test -f build/search/idmap.json
+          echo "✅ Search index copied to build output"
+
+      - name: Upload build artifact (for debugging)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-build
+          path: |
+            build/
+            static/search/
+            .svelte-kit/output/

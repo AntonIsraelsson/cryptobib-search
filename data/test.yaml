@@ -1,0 +1,61 @@
+CRYPTO:Bellare94:
+  type: article
+  title: The Security of the Cipher Block Chaining Message Authentication Code
+  author:
+  - Bellare, Mihir
+  - Canetti, Ran
+  - Krawczyk, Hugo
+  date: 1996
+  page-range: 341-358
+  serial-number:
+    doi: 10.1006/jcss.1996.0026
+  parent:
+    type: article
+    title: Journal of Computer and System Sciences
+    volume: 61
+    issue: 3
+
+CRYPTO:Rogaway02:
+  type: article
+  title: Authenticated-encryption with associated-data
+  author:
+  - Rogaway, Phillip
+  date: 2002
+  page-range: 98-127
+  parent:
+    type: proceedings
+    title: 'CCS 02: 9th ACM Conference on Computer and Communications Security'
+    publisher:
+      name: ACM Press
+      location: Washington, D.C., USA
+
+EUROCRYPT:AES01:
+  type: article
+  title: The Design of Rijndael AES - The Advanced Encryption Standard
+  author:
+  - Daemen, Joan
+  - Rijmen, Vincent
+  date: 2001
+  serial-number:
+    doi: 10.1007/978-3-662-04722-4
+  parent:
+    type: book
+    title: Information Security and Cryptography
+    publisher:
+      name: Springer-Verlag
+      location: Berlin, Germany
+
+PKC:Boneh98:
+  type: article
+  title: The Decision Diffie-Hellman Problem
+  author:
+  - Boneh, Dan
+  date: 1998
+  page-range: 48-63
+  parent:
+    type: proceedings
+    title: 'PKC 98: 1st International Workshop on Practice and Theory in Public Key Cryptography'
+    volume: 1431
+    publisher:
+      name: Springer-Verlag
+      location: Pacifico, Yokohama, Japan

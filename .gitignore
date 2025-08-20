@@ -1,0 +1,35 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# CryptoBib Search Data & Index Files
+/data/cryptobib.yaml
+/data/cryptobib+abbrev.bib
+/search/
+/static/search/
+
+# Keep test data
+!/data/test.yaml
+
+# Claude
+/.claude*
