@@ -18,6 +18,7 @@ export type Entry = {
   page_range?: string;
   doi?: string;
   highlight?: { title?: HighlightSpan[]; authors?: HighlightSpan[]; venue?: HighlightSpan[] };
+  original_hayagriva?: string;
 };
 
 // Loaded index state (core + lazy extended)

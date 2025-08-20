@@ -46,6 +46,16 @@
   function onKeydown(e: KeyboardEvent) {
     // TODO: implement keyboard nav: Up/Down, Enter, etc.
   }
+
+  async function copyHayagriva(entry: Entry) {
+    const hayagrivaText = entry.original_hayagriva || entry.key + ':\n  title: ' + entry.title;
+    try {
+      await navigator.clipboard.writeText(hayagrivaText);
+      console.log('Hayagriva entry copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }
 </script>
 
 <div class="container">
@@ -87,6 +97,9 @@
           <div class="identifiers">
             {#if r.doi}<a href="https://doi.org/{r.doi}" target="_blank" class="doi">DOI: {r.doi}</a>{/if}
             <span class="key">{r.key}</span>
+            <button class="copy-btn" on:click={() => copyHayagriva(r)} title="Copy Hayagriva entry">
+              📋 Copy
+            </button>
           </div>
         </div>
       {/each}
@@ -200,6 +213,26 @@
   .key {
     color: #6b7280;
     font-family: monospace;
+  }
+
+  .copy-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+
+  .copy-btn:active {
+    background: #d1d5db;
   }
 
   @media (max-width: 640px) {

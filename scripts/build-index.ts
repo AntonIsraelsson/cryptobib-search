@@ -64,6 +64,7 @@ async function main() {
   const entries: {
     id: number; key: string; title: string; authors: string[]; authors_str: string;
     venue: string; year?: number; page_range?: string; doi?: string;
+    original_hayagriva: string;
   }[] = [];
 
   let id = 0;
@@ -86,7 +87,14 @@ async function main() {
     const doi = e['serial-number']?.doi;
     const page_range = e['page-range'];
 
-    entries.push({ id: id++, key, title, authors, authors_str, venue, year, page_range, doi });
+    // Reconstruct original hayagriva entry
+    const original_hayagriva = yaml.dump({ [key]: e }, { 
+      indent: 2,
+      lineWidth: -1,
+      noRefs: true 
+    });
+    
+    entries.push({ id: id++, key, title, authors, authors_str, venue, year, page_range, doi, original_hayagriva });
   }
 
   console.log(`Building index for ${entries.length} entries...`);
@@ -349,21 +357,31 @@ async function main() {
   // Build docstore
   const enc = new TextEncoder();
   const docOffsets: number[] = [];
-  const docBytes: number[] = [];
+  const docChunks: Uint8Array[] = [];
   const idmap: Record<string, number> = {};
+  let totalBytes = 0;
 
   for (const d of entries) {
     idmap[d.key] = d.id;
     // For simplicity, write a JSON docstore
-    docOffsets.push(docBytes.length);
+    docOffsets.push(totalBytes);
     const obj = {
       id: d.id, key: d.key, title: d.title, authors_str: d.authors_str, venue: d.venue,
-      year: d.year, page_range: d.page_range, doi: d.doi
+      year: d.year, page_range: d.page_range, doi: d.doi, original_hayagriva: d.original_hayagriva
     };
     const b = enc.encode(JSON.stringify(obj) + '\n');
-    docBytes.push(...b);
+    docChunks.push(b);
+    totalBytes += b.length;
   }
-  docOffsets.push(docBytes.length);
+  docOffsets.push(totalBytes);
+  
+  // Combine chunks efficiently
+  const docBytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of docChunks) {
+    docBytes.set(chunk, offset);
+    offset += chunk.length;
+  }
 
   console.log('Writing index files...');
 
@@ -423,17 +441,16 @@ async function main() {
 
   // Docstore
   const docIndex = new Uint8Array(new Uint32Array(docOffsets).buffer);
-  const docBlob = new Uint8Array(docBytes);
   const idmapJson = JSON.stringify(idmap);
   
   await writeToSearchDirs('doc.index.bin', docIndex);
-  await writeToSearchDirs('doc.blob.bin', docBlob);
+  await writeToSearchDirs('doc.blob.bin', docBytes);
   await writeToSearchDirs('idmap.json', idmapJson);
   
   console.log('Index built successfully!');
   console.log(`Core postings size: ${corePosts.postings.length} bytes`);
   console.log(`Extended postings size: ${extPosts.postings.length} bytes`);
-  console.log(`Docstore size: ${docBytes.length} bytes`);
+  console.log(`Docstore size: ${totalBytes} bytes`);
 }
 
 main().catch(e => { 
