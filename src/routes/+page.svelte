@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { SearchDB, type Entry } from '$lib/search/db';
+  import { Copy, ExternalLink } from 'lucide-svelte';
   
   let db: SearchDB;
   let q = '';
@@ -87,7 +88,13 @@
     <div class="results">
       {#each results as r (r.id)}
         <div class="result-item">
-          <h3 class="title">{r.title}</h3>
+          <div class="result-header">
+            <h3 class="title">{r.title}</h3>
+            <button class="copy-btn" on:click={() => copyHayagriva(r)} title="Copy Hayagriva entry">
+              <Copy size={16} />
+              <span class="copy-text">Copy</span>
+            </button>
+          </div>
           <div class="authors">{r.authors_str}</div>
           <div class="meta">
             {#if r.venue}<span class="venue">{r.venue}</span>{/if}
@@ -95,11 +102,13 @@
             {#if r.page_range}<span class="pages">pp. {r.page_range}</span>{/if}
           </div>
           <div class="identifiers">
-            {#if r.doi}<a href="https://doi.org/{r.doi}" target="_blank" class="doi">DOI: {r.doi}</a>{/if}
+            {#if r.doi}
+              <a href="https://doi.org/{r.doi}" target="_blank" class="doi">
+                <ExternalLink size={14} />
+                DOI: {r.doi}
+              </a>
+            {/if}
             <span class="key">{r.key}</span>
-            <button class="copy-btn" on:click={() => copyHayagriva(r)} title="Copy Hayagriva entry">
-              📋 Copy
-            </button>
           </div>
         </div>
       {/each}
@@ -167,12 +176,21 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
 
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
   .title {
     font-size: 1.125rem;
     font-weight: 600;
     color: #1f2937;
-    margin-bottom: 0.5rem;
     line-height: 1.4;
+    flex: 1;
+    margin: 0;
   }
 
   .authors {
@@ -204,6 +222,9 @@
   .doi {
     color: #2563eb;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .doi:hover {
@@ -218,32 +239,68 @@
   .copy-btn {
     background: #f3f4f6;
     border: 1px solid #d1d5db;
-    border-radius: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
     color: #374151;
     cursor: pointer;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+    height: fit-content;
   }
 
   .copy-btn:hover {
     background: #e5e7eb;
     border-color: #9ca3af;
+    color: #1f2937;
   }
 
   .copy-btn:active {
     background: #d1d5db;
+    transform: translateY(1px);
   }
 
-  @media (max-width: 640px) {
+  .copy-text {
+    font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
     .container {
       padding: 1rem;
+    }
+    
+    .result-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .copy-btn {
+      align-self: flex-end;
+    }
+    
+    .copy-text {
+      display: none;
     }
     
     .meta,
     .identifiers {
       flex-direction: column;
       gap: 0.25rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .result-header {
+      gap: 0.5rem;
+    }
+    
+    .copy-btn {
+      padding: 0.375rem 0.5rem;
+      font-size: 0.75rem;
     }
   }
 </style>
