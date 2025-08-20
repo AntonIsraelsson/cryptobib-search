@@ -192,13 +192,13 @@ async function loadCore() {
   let o = 0;
   const numTerms = dictView.getUint32(o, true); o += 4;
   const termBytesLen = dictView.getUint32(o, true); o += 4;
-  const termOffsets = new Uint32Array(dictBuf, o, numTerms + 1); o += 4 * (numTerms + 1);
+  const termOffsets = new Uint32Array(dictBuf as ArrayBuffer, o, numTerms + 1); o += 4 * (numTerms + 1);
   const termBlob = new Uint8Array(dictBuf, o, termBytesLen);
 
   const ptrsView = new DataView(ptrsBuf);
   let p = 0;
   function readU32Array(n: number): Uint32Array {
-    const arr = new Uint32Array(ptrsBuf, p, n); p += 4 * n; return arr;
+    const arr = new Uint32Array(ptrsBuf as ArrayBuffer, p, n); p += 4 * n; return arr;
   }
   const ptrTitleStart = readU32Array(numTerms);
   const ptrTitleLen = readU32Array(numTerms);
@@ -208,16 +208,16 @@ async function loadCore() {
   const ptrKeyLen = readU32Array(numTerms);
 
   state.core.termBlob = termBlob;
-  state.core.termOffsets = termOffsets;
-  state.core.ptrTitleStart = ptrTitleStart;
-  state.core.ptrTitleLen = ptrTitleLen;
-  state.core.ptrAuthorsStart = ptrAuthorsStart;
-  state.core.ptrAuthorsLen = ptrAuthorsLen;
-  state.core.ptrKeyStart = ptrKeyStart;
-  state.core.ptrKeyLen = ptrKeyLen;
+  state.core.termOffsets = termOffsets as any;
+  state.core.ptrTitleStart = ptrTitleStart as any;
+  state.core.ptrTitleLen = ptrTitleLen as any;
+  state.core.ptrAuthorsStart = ptrAuthorsStart as any;
+  state.core.ptrAuthorsLen = ptrAuthorsLen as any;
+  state.core.ptrKeyStart = ptrKeyStart as any;
+  state.core.ptrKeyLen = ptrKeyLen as any;
   state.core.postings = new Uint8Array(postBuf);
 
-  state.docIndex = new Uint32Array(docIdxBuf);
+  state.docIndex = new Uint32Array(docIdxBuf as ArrayBuffer);
   state.docBlob = new Uint8Array(docBlobBuf);
 
   const keyMap = await keyMapRes.json();
@@ -252,13 +252,13 @@ async function ensureExtendedLoaded() {
   let o = 0;
   const numTerms = dictView.getUint32(o, true); o += 4;
   const termBytesLen = dictView.getUint32(o, true); o += 4;
-  const termOffsets = new Uint32Array(dictBuf, o, numTerms + 1); o += 4 * (numTerms + 1);
+  const termOffsets = new Uint32Array(dictBuf as ArrayBuffer, o, numTerms + 1); o += 4 * (numTerms + 1);
   const termBlob = new Uint8Array(dictBuf, o, termBytesLen);
 
   const ptrsView = new DataView(ptrsBuf);
   let p = 0;
   function readU32Array(n: number): Uint32Array {
-    const arr = new Uint32Array(ptrsBuf, p, n); p += 4 * n; return arr;
+    const arr = new Uint32Array(ptrsBuf as ArrayBuffer, p, n); p += 4 * n; return arr;
   }
   const ptrVenueStart = readU32Array(numTerms);
   const ptrVenueLen = readU32Array(numTerms);
@@ -268,13 +268,13 @@ async function ensureExtendedLoaded() {
   const ptrDoiLen = readU32Array(numTerms);
 
   state.ext.termBlob = termBlob;
-  state.ext.termOffsets = termOffsets;
-  state.ext.ptrVenueStart = ptrVenueStart;
-  state.ext.ptrVenueLen = ptrVenueLen;
-  state.ext.ptrYearStart = ptrYearStart;
-  state.ext.ptrYearLen = ptrYearLen;
-  state.ext.ptrDoiStart = ptrDoiStart;
-  state.ext.ptrDoiLen = ptrDoiLen;
+  state.ext.termOffsets = termOffsets as any;
+  state.ext.ptrVenueStart = ptrVenueStart as any;
+  state.ext.ptrVenueLen = ptrVenueLen as any;
+  state.ext.ptrYearStart = ptrYearStart as any;
+  state.ext.ptrYearLen = ptrYearLen as any;
+  state.ext.ptrDoiStart = ptrDoiStart as any;
+  state.ext.ptrDoiLen = ptrDoiLen as any;
   state.ext.postings = new Uint8Array(postBuf);
 
   // Build prefix map similarly
@@ -333,7 +333,7 @@ function binarySearch(arr: number[], x: number): number {
 
 // Full search flow
 async function handleSearch(q: string, opts: SearchOpts = {}) {
-  if (!state.inited) await handleInit();
+  if (!state.inited) await handleInit({ type: 'init' });
   const limit = Math.max(1, Math.min(1000, opts.limit ?? 50));
   const t0 = performance.now();
 
