@@ -1,3 +1,5 @@
+import { base } from '$app/paths';
+
 export type { Entry, SearchOpts } from './worker';
 
 export class SearchDB {
@@ -17,7 +19,7 @@ export class SearchDB {
         }
       };
       this.worker.addEventListener('message', handleMessage);
-      this.worker.postMessage({ type: 'init' });
+      this.worker.postMessage({ type: 'init', basePath: base });
     });
   }
 

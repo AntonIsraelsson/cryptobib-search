@@ -158,7 +158,22 @@ This is a static SvelteKit app. Build artifacts include:
 1. **App bundle**: Standard SvelteKit static output
 2. **Search index**: Binary files in `static/search/`
 
-Deploy to any static host (Netlify, Vercel, GitHub Pages, S3, etc.):
+### GitHub Pages (Automatic)
+
+The repository includes GitHub Actions workflows for automatic deployment:
+
+1. **Push to `main`/`master`**: Triggers full build with CryptoBib data and deploys to GitHub Pages
+2. **Pull Requests**: Runs tests and builds with sample data for validation
+3. **Caching**: CryptoBib data is cached between builds to speed up deployments
+
+To enable GitHub Pages:
+1. Go to repository Settings → Pages
+2. Source: "GitHub Actions"  
+3. Push to main branch - the site will be built and deployed automatically
+
+### Manual Deployment
+
+Deploy to any static host (Netlify, Vercel, S3, etc.):
 
 ```bash
 npm run build:all
@@ -169,6 +184,10 @@ Ensure proper headers:
 - `.bin` files: `Content-Type: application/octet-stream`, long cache TTL
 - `.json` files: `Content-Type: application/json`, cache with version checks
 - Enable Brotli/gzip compression for all text and binary assets
+
+### Environment Variables
+
+- `BASE_PATH`: Set for subpath deployments (automatically handled for GitHub Pages)
 
 ## License
 

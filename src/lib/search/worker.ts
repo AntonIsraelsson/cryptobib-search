@@ -1,6 +1,6 @@
 // Web Worker (module) that owns all heavy CPU. No external deps.
 
-type InitMsg = { type: 'init' };
+type InitMsg = { type: 'init'; basePath?: string };
 type SearchMsg = { type: 'search'; q: string; opts?: SearchOpts };
 type GetMsg = { type: 'get'; idOrKey: number | string };
 type AnyMsg = InitMsg | SearchMsg | GetMsg;
@@ -168,18 +168,22 @@ function readPostings(postings: Uint8Array, start: number, len: number, withPosi
   return withPositions ? { docs, positions } : { docs };
 }
 
+// Get base path - in production, this will be set by SvelteKit's base path handling
+// For Web Workers, we'll pass the base path from the main thread
+let basePath = '';
+
 async function loadCore() {
-  const meta = await (await fetch('/search/index.core.meta.json')).json();
+  const meta = await (await fetch(`${basePath}/search/index.core.meta.json`)).json();
   state.version = meta.version;
   state.numDocs = meta.numDocs;
 
   const [dictBuf, ptrsBuf, postBuf, docIdxBuf, docBlobBuf, keyMapRes] = await Promise.all([
-    fetchBin('/search/index.core.dict.bin'),
-    fetchBin('/search/index.core.ptrs.bin'),
-    fetchBin('/search/index.core.postings.bin'),
-    fetchBin('/search/doc.index.bin'),
-    fetchBin('/search/doc.blob.bin'),
-    fetch('/search/idmap.json'),
+    fetchBin(`${basePath}/search/index.core.dict.bin`),
+    fetchBin(`${basePath}/search/index.core.ptrs.bin`),
+    fetchBin(`${basePath}/search/index.core.postings.bin`),
+    fetchBin(`${basePath}/search/doc.index.bin`),
+    fetchBin(`${basePath}/search/doc.blob.bin`),
+    fetch(`${basePath}/search/idmap.json`),
   ]);
 
   // Dict blob encodes termOffsets + termBytes; ptrs encodes per-field start/len arrays
@@ -237,11 +241,11 @@ async function loadCore() {
 
 async function ensureExtendedLoaded() {
   if (state.extLoaded) return;
-  const meta = await (await fetch('/search/index.ext.meta.json')).json();
+  const meta = await (await fetch(`${basePath}/search/index.ext.meta.json`)).json();
   const [dictBuf, ptrsBuf, postBuf] = await Promise.all([
-    fetchBin('/search/index.ext.dict.bin'),
-    fetchBin('/search/index.ext.ptrs.bin'),
-    fetchBin('/search/index.ext.postings.bin'),
+    fetchBin(`${basePath}/search/index.ext.dict.bin`),
+    fetchBin(`${basePath}/search/index.ext.ptrs.bin`),
+    fetchBin(`${basePath}/search/index.ext.postings.bin`),
   ]);
 
   const dictView = new DataView(dictBuf);
@@ -307,8 +311,11 @@ function getEntryById(id: number): Entry | null {
   }
 }
 
-async function handleInit() {
+async function handleInit(msg: InitMsg) {
   if (state.inited) return;
+  if (msg.basePath) {
+    basePath = msg.basePath;
+  }
   await loadCore();
   state.inited = true;
   (self as any).postMessage({ type: 'init:ok' });
@@ -526,7 +533,7 @@ async function handleSearch(q: string, opts: SearchOpts = {}) {
 self.onmessage = async (ev: MessageEvent<AnyMsg>) => {
   const msg = ev.data;
   try {
-    if (msg.type === 'init') await handleInit();
+    if (msg.type === 'init') await handleInit(msg);
     else if (msg.type === 'search') await handleSearch(msg.q, msg.opts);
     else if (msg.type === 'get') {
       const id = typeof msg.idOrKey === 'string' ? state.keyToId.get(msg.idOrKey) ?? -1 : msg.idOrKey;
