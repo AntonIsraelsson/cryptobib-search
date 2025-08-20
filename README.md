@@ -1,4 +1,4 @@
-# CryptoBib Search
+# [CryptoBib Search](https://antonisraelsson.github.io/cryptobib-search/)
 
 Ultra-fast, fully client-side search for the CryptoBib corpus in a static Svelte app.
 
@@ -23,25 +23,25 @@ bun install  # or npm install
 
 Option A: Use test data (4 sample entries):
 ```bash
-npm run build:index
+bun run build:index
 ```
 
 Option B: Download full CryptoBib corpus:
 ```bash
-npm run fetch          # Download and convert BibTeX to YAML
-npm run build:index    # Build search index from YAML
+bun run fetch          # Download and convert BibTeX to YAML
+bun run build:index    # Build search index from YAML
 ```
 
 Note: The fetch command requires `hayagriva` CLI to be installed:
 ```bash
-cargo install hayagriva-cli
+cargo install hayagriva --features cli
 ```
 
 ### 3. Run the Application
 
 Development:
 ```bash
-npm run dev
+bun run dev
 ```
 
 Production build:
@@ -125,65 +125,6 @@ npm run preview       # Preview built app
 ├── data/                      # Source data (YAML/BibTeX)
 └── search/                    # Build output (same as static/search)
 ```
-
-## Development
-
-### Adding Features
-
-- **Fuzzy matching**: Extend worker.ts with edit-distance candidates via n-grams
-- **Highlighting**: Compute match spans in worker, render in UI
-- **Keyboard nav**: Handle Up/Down/Enter in Svelte component
-- **Filters**: Add UI controls for year ranges, venues, etc.
-
-### Performance Testing
-
-Run benchmarks in browser console:
-```javascript
-import('/scripts/bench.js').then(m => m.runBenchmarks())
-```
-
-Or create a test page that imports and runs the benchmark suite.
-
-### Debugging
-
-- Check browser Network tab for index loading
-- Monitor Worker messages in DevTools
-- Use `console.log` timing in search queries
-- Inspect index sizes and compression ratios
-
-## Deployment
-
-This is a static SvelteKit app. Build artifacts include:
-
-1. **App bundle**: Standard SvelteKit static output
-2. **Search index**: Binary files in `static/search/`
-
-### GitHub Pages (Automatic)
-
-The repository includes GitHub Actions workflows for automatic deployment:
-
-1. **Push to `main`/`master`**: Triggers full build with CryptoBib data and deploys to GitHub Pages
-2. **Pull Requests**: Runs tests and builds with sample data for validation
-3. **Caching**: CryptoBib data is cached between builds to speed up deployments
-
-To enable GitHub Pages:
-1. Go to repository Settings → Pages
-2. Source: "GitHub Actions"  
-3. Push to main branch - the site will be built and deployed automatically
-
-### Manual Deployment
-
-Deploy to any static host (Netlify, Vercel, S3, etc.):
-
-```bash
-npm run build:all
-# Upload 'build/' directory
-```
-
-Ensure proper headers:
-- `.bin` files: `Content-Type: application/octet-stream`, long cache TTL
-- `.json` files: `Content-Type: application/json`, cache with version checks
-- Enable Brotli/gzip compression for all text and binary assets
 
 ### Environment Variables
 
