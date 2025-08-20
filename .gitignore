@@ -24,3 +24,12 @@ vite.config.ts.timestamp-*
 
 # Manually Added
 *.lock
+
+# CryptoBib Search Data & Index Files
+/data/cryptobib.yaml
+/data/cryptobib+abbrev.bib
+/search/
+/static/search/
+
+# Keep test data
+!/data/test.yaml
