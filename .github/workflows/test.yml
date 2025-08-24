@@ -2,14 +2,14 @@ name: Test Build
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   push:
-    branches: [ develop, feature/* ]
+    branches: [develop, feature/*]
 
 jobs:
   test-build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-          
+
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -50,7 +50,7 @@ jobs:
           test -f static/search/doc.blob.bin
           test -f static/search/idmap.json
           echo "✅ Search index files generated successfully"
-          
+
           # Check that build output contains search files
           test -f build/search/index.core.meta.json
           test -f build/search/index.core.dict.bin

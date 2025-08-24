@@ -2,9 +2,9 @@ CRYPTO:Bellare94:
   type: article
   title: The Security of the Cipher Block Chaining Message Authentication Code
   author:
-  - Bellare, Mihir
-  - Canetti, Ran
-  - Krawczyk, Hugo
+    - Bellare, Mihir
+    - Canetti, Ran
+    - Krawczyk, Hugo
   date: 1996
   page-range: 341-358
   serial-number:
@@ -19,7 +19,7 @@ CRYPTO:Rogaway02:
   type: article
   title: Authenticated-encryption with associated-data
   author:
-  - Rogaway, Phillip
+    - Rogaway, Phillip
   date: 2002
   page-range: 98-127
   parent:
@@ -33,8 +33,8 @@ EUROCRYPT:AES01:
   type: article
   title: The Design of Rijndael AES - The Advanced Encryption Standard
   author:
-  - Daemen, Joan
-  - Rijmen, Vincent
+    - Daemen, Joan
+    - Rijmen, Vincent
   date: 2001
   serial-number:
     doi: 10.1007/978-3-662-04722-4
@@ -49,7 +49,7 @@ PKC:Boneh98:
   type: article
   title: The Decision Diffie-Hellman Problem
   author:
-  - Boneh, Dan
+    - Boneh, Dan
   date: 1998
   page-range: 48-63
   parent:
@@ -59,3 +59,16 @@ PKC:Boneh98:
     publisher:
       name: Springer-Verlag
       location: Pacifico, Yokohama, Japan
+
+EPRINT:CHKKS18a:
+  type: misc
+  title: Bootstrapping for Approximate Homomorphic Encryption
+  author:
+    - Cheon, Jung Hee
+    - Han, Kyoohyung
+    - Kim, Andrey
+    - Kim, Miran
+    - Song, Yongsoo
+  date: 2018
+  url: https://eprint.iacr.org/2018/153
+  note: Cryptology ePrint Archive, Report 2018/153

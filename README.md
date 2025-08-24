@@ -22,17 +22,20 @@ bun install  # or npm install
 ### 2. Build Search Index
 
 Option A: Use test data (4 sample entries):
+
 ```bash
 bun run build:index
 ```
 
 Option B: Download full CryptoBib corpus:
+
 ```bash
 bun run fetch          # Download and convert BibTeX to YAML
 bun run build:index    # Build search index from YAML
 ```
 
 Note: The fetch command requires `hayagriva` CLI to be installed:
+
 ```bash
 cargo install hayagriva --features cli
 ```
@@ -40,11 +43,13 @@ cargo install hayagriva --features cli
 ### 3. Run the Application
 
 Development:
+
 ```bash
 bun run dev
 ```
 
 Production build:
+
 ```bash
 npm run build:all     # Fetch, build index, and build app
 npm run preview       # Preview built app
@@ -62,11 +67,13 @@ npm run preview       # Preview built app
 ### Fields Searched
 
 **Core tier** (loaded immediately):
+
 - Title (highest weight)
-- Authors (high weight)  
+- Authors (high weight)
 - Entry keys (medium weight)
 
 **Extended tier** (lazy-loaded when needed):
+
 - Venue/journal/conference names
 - Publication years
 - DOI identifiers
@@ -117,7 +124,7 @@ npm run preview       # Preview built app
 │   ├── build-index.ts          # Index builder
 │   └── bench.ts               # Performance benchmarks
 ├── src/lib/search/
-│   ├── worker.ts              # Web Worker search engine  
+│   ├── worker.ts              # Web Worker search engine
 │   └── db.ts                  # Main thread API
 ├── src/routes/
 │   └── +page.svelte           # Search interface

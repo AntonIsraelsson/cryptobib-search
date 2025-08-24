@@ -8,7 +8,7 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-	kit: { 
+	kit: {
 		adapter: adapter(),
 		paths: {
 			base: dev ? '' : process.env.BASE_PATH || ''
